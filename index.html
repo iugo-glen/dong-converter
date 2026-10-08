@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dong Converter</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dong">
+<meta name="theme-color" content="#0f7a64">
+<style>
+/* Layout: one-screen calculator. Two currency rows on top (tap to choose input), keypad below. */
+:root {
+  --bg: #eef3f1;
+  --surface: #ffffff;
+  --fg: #12302a;
+  --muted: #5d7570;
+  --accent: #0f7a64;
+  --accent-ink: #ffffff;
+  --key: #f9fbfa;
+  --key-press: #dbe7e3;
+  --line: #d3e0dc;
+  --font: "Be Vietnam Pro", -apple-system, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1715; --surface: #15231f; --fg: #e4efec; --muted: #8fa8a2;
+    --accent: #3fc29f; --accent-ink: #062019; --key: #1b2c28; --key-press: #26403a; --line: #263a35;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1715; --surface: #15231f; --fg: #e4efec; --muted: #8fa8a2;
+  --accent: #3fc29f; --accent-ink: #062019; --key: #1b2c28; --key-press: #26403a; --line: #263a35;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  margin: 0; box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--bg); color: var(--fg); font-family: var(--font);
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.app {
+  height: 100%; box-sizing: border-box; max-width: 440px; margin: 0 auto;
+  padding: 16px; padding-block: 12px 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.rate { font-size: 13px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row {
+  all: unset; box-sizing: border-box; width: 100%; cursor: pointer;
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px;
+  background: var(--surface); border: 2px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; min-width: 0;
+}
+.row.active { border-color: var(--accent); }
+.row:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.code { font-weight: 600; font-size: 15px; letter-spacing: .06em; color: var(--muted); }
+.row.active .code { color: var(--accent); }
+.amount {
+  text-align: right; font-size: clamp(28px, 9vw, 40px); font-weight: 600;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; min-width: 0; line-height: 1.15;
+}
+.amount small { font-size: .55em; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.row:not(.active) .amount { font-weight: 500; }
+.pad {
+  flex: 1; min-height: 0; display: grid; gap: 8px;
+  grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr;
+}
+.pad button {
+  all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  background: var(--key); border: 1px solid var(--line); border-radius: 14px;
+  font-size: 28px; font-weight: 500; color: var(--fg); min-height: 52px;
+}
+.pad button:active { background: var(--key-press); }
+.pad button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.pad .k000 { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.pad .k000:active { filter: brightness(.92); background: var(--accent); }
+.pad .clear { font-size: 18px; font-weight: 600; color: var(--muted); grid-column: span 3; min-height: 44px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <p class="rate">1 AUD = 18,102 ₫ &middot; mid-market rate as at 7 Oct 2026</p>
+
+  <div class="rows">
+    <button class="row active" id="row-vnd" type="button" aria-label="Enter Vietnamese dong">
+      <span class="code">VND</span><span class="amount" id="amt-vnd">0</span>
+    </button>
+    <button class="row" id="row-aud" type="button" aria-label="Enter Australian dollars">
+      <span class="code">AUD</span><span class="amount" id="amt-aud">$0.00</span>
+    </button>
+  </div>
+
+  <div class="pad" id="pad">
+    <button type="button" data-k="1">1</button>
+    <button type="button" data-k="2">2</button>
+    <button type="button" data-k="3">3</button>
+    <button type="button" data-k="4">4</button>
+    <button type="button" data-k="5">5</button>
+    <button type="button" data-k="6">6</button>
+    <button type="button" data-k="7">7</button>
+    <button type="button" data-k="8">8</button>
+    <button type="button" data-k="9">9</button>
+    <button type="button" id="special" class="k000" data-k="000">000</button>
+    <button type="button" data-k="0">0</button>
+    <button type="button" data-k="back" aria-label="Delete">⌫</button>
+    <button type="button" class="clear" data-k="clear">Clear</button>
+  </div>
+</div>
+
+<script>
+const RATE = 18102.045973; // VND per 1 AUD, ExchangeRate-API, 7 Oct 2026
+let input = 'VND';
+let str = '100000';
+
+const $ = id => document.getElementById(id);
+const fmtInt = n => Math.round(n).toLocaleString('en-AU');
+
+function fmtTyped(s) {
+  if (!s) return '0';
+  const [i, d] = s.split('.');
+  const intPart = Number(i || '0').toLocaleString('en-AU');
+  return d !== undefined ? intPart + '.' + d : intPart;
+}
+
+function render() {
+  const v = parseFloat(str) || 0;
+  const vndRow = $('row-vnd'), audRow = $('row-aud'), sp = $('special');
+  if (input === 'VND') {
+    $('amt-vnd').innerHTML = fmtTyped(str) + '<small>₫</small>';
+    $('amt-aud').textContent = '$' + (v / RATE).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    sp.textContent = '000'; sp.dataset.k = '000'; sp.className = 'k000';
+  } else {
+    $('amt-aud').textContent = '$' + fmtTyped(str);
+    $('amt-vnd').innerHTML = fmtInt(v * RATE) + '<small>₫</small>';
+    sp.textContent = '.'; sp.dataset.k = '.'; sp.className = '';
+  }
+  vndRow.classList.toggle('active', input === 'VND');
+  audRow.classList.toggle('active', input === 'AUD');
+}
+
+function press(k) {
+  if (k === 'clear') { str = ''; return render(); }
+  if (k === 'back') { str = str.slice(0, -1); return render(); }
+  const digits = str.replace('.', '').length;
+  if (k === '.') {
+    if (!str.includes('.')) str = (str || '0') + '.';
+  } else if (k === '000') {
+    if (str && Number(str) !== 0 && digits <= 9) str += '000';
+  } else {
+    if (input === 'AUD' && str.includes('.') && str.split('.')[1].length >= 2) return;
+    if (digits >= 12) return;
+    str = (str === '0') ? k : str + k;
+  }
+  render();
+}
+
+function setInput(cur) {
+  if (cur === input) return;
+  input = cur; str = ''; render();
+}
+
+$('pad').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (b) press(b.dataset.k);
+});
+$('row-vnd').addEventListener('click', () => setInput('VND'));
+$('row-aud').addEventListener('click', () => setInput('AUD'));
+
+render();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
