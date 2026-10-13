@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Dong Converter</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.png">
@@ -35,7 +35,8 @@
   --accent: #3fc29f; --accent-ink: #062019; --key: #1b2c28; --key-press: #26403a; --line: #263a35;
   color-scheme: dark;
 }
-html, body { height: 100%; }
+html, body { height: 100%; touch-action: manipulation; }
+* { touch-action: manipulation; }
 body {
   margin: 0; box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
