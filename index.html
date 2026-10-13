@@ -85,7 +85,7 @@ body {
 <body>
 
 <div class="app">
-  <p class="rate">1 AUD = 18,102 ₫ &middot; mid-market rate as at 7 Oct 2026</p>
+  <p class="rate">1 AUD = 18,102 ₫ &middot; mid-market rate as at 7 Oct 2026 &middot; v3</p>
 
   <div class="rows">
     <button class="row active" id="row-vnd" type="button" aria-label="Enter Vietnamese dong">
@@ -165,11 +165,15 @@ function setInput(cur) {
   input = cur; str = ''; render();
 }
 
-$('pad').addEventListener('click', e => {
+// Handle taps on pointerdown and cancel the touch, so iOS never sees a double-tap to zoom.
+document.addEventListener('touchstart', e => { if (e.target.closest('button')) e.preventDefault(); }, { passive: false });
+document.addEventListener('dblclick', e => e.preventDefault());
+document.addEventListener('gesturestart', e => e.preventDefault());
+$('pad').addEventListener('pointerdown', e => {
   const b = e.target.closest('button'); if (b) press(b.dataset.k);
 });
-$('row-vnd').addEventListener('click', () => setInput('VND'));
-$('row-aud').addEventListener('click', () => setInput('AUD'));
+$('row-vnd').addEventListener('pointerdown', () => setInput('VND'));
+$('row-aud').addEventListener('pointerdown', () => setInput('AUD'));
 
 render();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");

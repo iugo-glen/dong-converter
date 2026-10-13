@@ -1,4 +1,4 @@
-const CACHE = 'dong-v2';
+const CACHE = 'dong-v3';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
